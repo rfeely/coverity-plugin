@@ -173,7 +173,13 @@ public abstract class CoverityToolHandler {
         cmd.add(covEmitJava);
         cmd.add("--dir");
         cmd.add(temp.getTempDir().getRemote());
-        cmd.add("--webapp-archive");
+        // If a file is specified use --webapp-archive 
+        // otherwise use --findwars to search directory
+        if(javaWarFile.endsWith(".war") || javaWarFile.endsWith(".ear")) {
+            cmd.add("--webapp-archive");
+        } else {
+            cmd.add("--findwars");
+        }
         cmd.add(javaWarFile);
 
         try {
