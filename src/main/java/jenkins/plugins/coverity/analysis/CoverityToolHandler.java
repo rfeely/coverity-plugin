@@ -166,33 +166,55 @@ public abstract class CoverityToolHandler {
     }
 
     public boolean covEmitWar(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, String home, CoverityTempDir temp, String javaWarFile) throws IOException, InterruptedException {
-        String covEmitJava = "cov-emit-java";
-        covEmitJava = new FilePath(launcher.getChannel(), home).child("bin").child(covEmitJava).getRemote();
+    
+        String[] wars;
+    	
+    	if (javaWarFile.contains(",")){
 
-        List<String> cmd = new ArrayList<String>();
-        cmd.add(covEmitJava);
-        cmd.add("--dir");
-        cmd.add(temp.getTempDir().getRemote());
-        cmd.add("--webapp-archive");
-        cmd.add(javaWarFile);
+    		wars = javaWarFile.split(",");
 
-        try {
-            CoverityLauncherDecorator.SKIP.set(true);
+    	} else {
 
-            int result = launcher.
-                    launch().
-                    cmds(new ArgumentListBuilder(cmd.toArray(new String[cmd.size()]))).
-                    pwd(build.getWorkspace()).
-                    stdout(listener).
-                    join();
+    		wars = new String[1];
+    		wars[0] = javaWarFile;
+    	}
 
-            if(result != 0) {
-                listener.getLogger().println("[Coverity] " + covEmitJava + " returned " + result + ", aborting...");
-                return false;
-            }
-        } finally {
-            CoverityLauncherDecorator.SKIP.set(false);
-        }
+    	for(String war : wars){
+
+    		String covEmitJava = "cov-emit-java";
+    		covEmitJava = new FilePath(launcher.getChannel(), home).child("bin").child(covEmitJava).getRemote();
+
+    		List<String> cmd = new ArrayList<String>();
+    		cmd.add(covEmitJava);
+    		cmd.add("--dir");
+    		cmd.add(temp.getTempDir().getRemote());
+    		// If a file is specified use --webapp-archive 
+    		// otherwise use --findwars to search directory
+    		if((new File(war)).isFile()) {
+    			cmd.add("--webapp-archive");
+    		} else {
+    			cmd.add("--findwars");
+    		}
+    		cmd.add(war);
+
+    		try {
+    			CoverityLauncherDecorator.SKIP.set(true);
+
+    			int result = launcher.
+    					launch().
+    					cmds(new ArgumentListBuilder(cmd.toArray(new String[cmd.size()]))).
+    					pwd(build.getWorkspace()).
+    					stdout(listener).
+    					join();
+    			if(result != 0) {
+    				listener.getLogger().println("[Coverity] WARNING:" + covEmitJava + " returned " + result + ", skipping war file/directory " + war);
+    				//return false;
+    			}
+    		} finally {
+    			CoverityLauncherDecorator.SKIP.set(false);
+    		}
+
+    	}
 
         return true;
     }

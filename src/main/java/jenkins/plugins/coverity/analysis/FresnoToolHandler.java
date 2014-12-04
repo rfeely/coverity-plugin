@@ -443,7 +443,7 @@ public class FresnoToolHandler extends CoverityToolHandler {
                 reader.close();
             }
             listener.getLogger().println("Cim Streams: " + publisher.getCimStreams().size());
-            listener.getLogger().println("Snapsho Size: " + snapshotIds.size());
+            listener.getLogger().println("Snapshot Size: " + snapshotIds.size());
             if(snapshotIds.size() != publisher.getCimStreams().size()) {
                 listener.getLogger().println("[Coverity] Wrong number of snapshot IDs found in build log");
                 build.setResult(Result.FAILURE);
@@ -492,7 +492,7 @@ public class FresnoToolHandler extends CoverityToolHandler {
                     }
 
                     if(!matchingDefects.isEmpty()) {
-                        listener.getLogger().println("[Coverity] Found " + defects.size() + " defects matching all filters: " + matchingDefects);
+                        listener.getLogger().println("[Coverity] Found " + matchingDefects.size() + " defects matching all filters: " + matchingDefects);
                         if(publisher.isFailBuild()) {
                             if(build.getResult().isBetterThan(Result.FAILURE)) {
                                 build.setResult(Result.FAILURE);
